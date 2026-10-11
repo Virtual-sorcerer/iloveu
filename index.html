@@ -37,6 +37,11 @@
     <canvas id="petals" aria-hidden="true"></canvas>
     <div id="vignette"></div>
     <div id="grain"></div>
+    <div class="leak l1" id="leak1"></div>
+    <div class="leak l2" id="leak2"></div>
+    <div class="letterbox" id="lbTop"></div>
+    <div class="letterbox" id="lbBot"></div>
+    <div class="burst-msg" id="burstMsg" role="status" aria-live="polite"></div>
 
     <!-- ========== CẢNH 1 — OPENING ========== -->
     <section class="scene" id="s0" aria-label="Mở đầu">
@@ -65,6 +70,7 @@
       <div class="open-text" id="openText">
         <p class="intro-line name" id="oName" style="--d:.6s"></p>
         <p class="intro-line sub" id="oSub" style="--d:2s"></p>
+        <button class="magic-btn" id="magicBtn" type="button"><span class="mb-ic" aria-hidden="true">✦</span><span class="mb-tx" id="mbText"></span></button>
       </div>
 
       <div class="hint" id="hint">
@@ -95,7 +101,9 @@
           <ellipse id="recept" cx="200" cy="316" rx="15" ry="11" fill="#6f8760" opacity="0"/>
           <g id="petalsG"></g>
         </svg>
+        <div class="rose-hit" id="roseHit"></div>
       </div>
+      <div class="flare" id="flare"></div>
       <p class="line rv bloom-line" id="bLine"></p>
     </section>
 
