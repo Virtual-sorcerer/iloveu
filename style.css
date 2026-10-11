@@ -47,7 +47,9 @@ body {
 #petals { position: absolute; left: 0; top: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
 #vignette {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: radial-gradient(ellipse at 50% 45%, rgba(255,255,255,0) 55%, rgba(122,45,70,.10) 100%);
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(255,255,255,0) 38%, rgba(122,45,70,.14) 82%, rgba(60,16,32,.32) 100%),
+    linear-gradient(180deg, rgba(74,38,48,.06), rgba(74,38,48,0) 18%, rgba(74,38,48,0) 82%, rgba(74,38,48,.10));
 }
 
 /* ---------- Cảnh ---------- */
@@ -167,7 +169,13 @@ body {
 
 /* ---------- 6. Ending ---------- */
 .fall { position: absolute; left: 50%; top: 0; width: 84px; margin-left: -42px; will-change: transform, opacity; }
-.thanks { font-size: clamp(1.2rem, 4.8vw, 1.7rem); font-style: italic; color: var(--deep); position: relative; }
+.thanks {
+  font-size: clamp(1.2rem, 4.8vw, 1.7rem); font-style: italic; color: var(--deep); position: relative;
+  text-shadow:
+    -1px 0 0 rgba(255,80,140,.30),
+     1px 0 0 rgba(80,180,255,.30),
+     0 0 22px rgba(138,47,72,.18);
+}
 .btn {
   position: relative; margin-top: 2.2em;
   font: inherit; font-size: 1.02rem; letter-spacing: .05em;
@@ -203,7 +211,7 @@ body {
 /* Hạt phim rất nhẹ */
 #grain {
   position: absolute; inset: 0; z-index: 3; pointer-events: none;
-  opacity: .08; mix-blend-mode: multiply;
+  opacity: .07; mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .15 0 0 0 0 .2 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
@@ -247,4 +255,102 @@ body {
   margin-left: -80px; margin-top: -80px; border-radius: 50%;
   border: 1px solid rgba(226,182,106,.85);
   opacity: 0; pointer-events: none; will-change: transform, opacity;
+}
+
+
+/* =========================================================
+   RESTORE CINEMATIC — iPhone magic, letterbox, lens leak,
+   focus pull, anamorphic flare, burst message
+   ========================================================= */
+
+/* --- GPU layer + cô lập stage --- */
+.stage { transform: translateZ(0); -webkit-backface-visibility: hidden; backface-visibility: hidden; isolation: isolate; }
+.scene { will-change: opacity, filter; }
+/* Focus pull: chỉ bật filter khi đang giao cảnh (blur(0) luôn tốn layer trên iPhone) */
+.stage.focusing .scene { filter: blur(var(--focus, 0px)); }
+
+/* --- Letterbox: chỉ animate transform, KHÔNG animate height --- */
+.letterbox {
+  position: absolute; left: 0; right: 0; height: 7%;
+  background: #0a0507; z-index: 5; pointer-events: none;
+  transform: translateZ(0) scaleY(0); will-change: transform;
+}
+#lbTop { top: 0;    transform-origin: top; }
+#lbBot { bottom: 0; transform-origin: bottom; }
+
+/* --- Lens leak --- */
+.leak {
+  position: absolute; border-radius: 50%; pointer-events: none; z-index: 3;
+  width: 60vmax; height: 60vmax; opacity: 0;
+  mix-blend-mode: screen; filter: blur(38px);
+  transform: translateZ(0); -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+.leak.l1 { top: -16%; right: -18%; background: radial-gradient(circle, rgba(255,200,110,.80), rgba(255,170,90,0) 65%); }
+.leak.l2 { bottom: -18%; left: -20%; background: radial-gradient(circle, rgba(255,140,170,.75), rgba(255,120,150,0) 65%); }
+
+/* --- Anamorphic flare --- */
+.flare {
+  position: absolute; left: 50%; top: 42%; width: 140vw; height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(255,240,200,.65) 35%, #fff 50%, rgba(255,240,200,.65) 65%, transparent);
+  filter: blur(1.6px); mix-blend-mode: screen;
+  transform-origin: center; transform: translate(-50%, -50%) scaleX(0);
+  opacity: 0; pointer-events: none; will-change: transform, opacity;
+}
+
+/* --- Vùng chạm hoa (tap / giữ 5 giây) --- */
+.rose-hit {
+  position: absolute; left: 50%; top: 48.75%; width: 70%; aspect-ratio: 1;
+  transform: translate(-50%, -50%); border-radius: 50%;
+  pointer-events: auto; cursor: pointer;
+  touch-action: manipulation;               /* vẫn cuộn được, chỉ tắt zoom đúp */
+  -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none;
+}
+
+/* --- Burst message --- */
+.burst-msg {
+  position: absolute; left: 50%; top: 22%; z-index: 6; max-width: 86vw; text-align: center;
+  transform: translate(-50%, -50%) scale(.9);
+  font-family: var(--serif); font-style: italic; font-size: clamp(1rem, 4vw, 1.25rem); color: var(--deep);
+  background: rgba(255,244,238,.92); padding: .8em 1.5em; border-radius: 999px;
+  box-shadow: 0 8px 30px rgba(138,47,72,.22), 0 1px 0 rgba(255,255,255,.7) inset;
+  opacity: 0; pointer-events: none;
+  transition: opacity .55s ease, transform .55s cubic-bezier(.2,.8,.2,1);
+}
+.burst-msg.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+/* --- Magic button (chỉ hiện trên iOS 13+, nơi cần xin quyền cảm biến) --- */
+.magic-btn {
+  display: none; position: relative; overflow: hidden;
+  margin-top: 1.8em; padding: .85em 1.5em;
+  align-items: center; gap: .6em;
+  font: inherit; font-size: .98rem; letter-spacing: .03em; color: var(--deep);
+  background: rgba(255,244,238,.6);
+  border: 1px solid rgba(226,182,106,.9); border-radius: 999px;
+  cursor: pointer; pointer-events: auto;
+  -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+  opacity: 0; transition: opacity .6s ease;
+  animation: mbIn 1.2s ease 3.2s forwards, mbPulse 2.6s ease-in-out 4.4s infinite;
+}
+.magic-btn.show { display: inline-flex; }
+.magic-btn::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 45%;
+  background: linear-gradient(100deg, rgba(255,255,255,0), rgba(255,255,255,.75), rgba(255,255,255,0));
+  transform: skewX(-20deg); animation: mbShimmer 3.2s ease-in-out 4.4s infinite; pointer-events: none;
+}
+.mb-ic { display: inline-block; color: var(--gold); font-size: 1.1em; animation: mbSpin 5s linear infinite, mbTwinkle 1.8s ease-in-out infinite; }
+.magic-btn.hide { animation: none; opacity: 0 !important; pointer-events: none; }
+.magic-btn.denied { animation: none; opacity: 1; }
+@keyframes mbIn { to { opacity: 1; } }
+@keyframes mbPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(226,182,106,.55); } 50% { box-shadow: 0 0 0 9px rgba(226,182,106,0); } }
+@keyframes mbShimmer { 0% { left: -60%; } 55%, 100% { left: 130%; } }
+@keyframes mbSpin { to { transform: rotate(360deg); } }
+@keyframes mbTwinkle { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+.reduced .magic-btn { animation: mbIn .01s forwards; }
+.reduced .magic-btn::after, .reduced .mb-ic { animation: none; }
+
+/* --- Tối ưu mobile --- */
+@media (max-width: 480px) {
+  .leak { filter: blur(30px); }
+  #grain { opacity: .05; }
 }
